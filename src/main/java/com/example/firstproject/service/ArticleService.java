@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,5 +65,23 @@ public class ArticleService {
         // 3. 대상 삭제하기
         articleRepository.delete(target);
         return target;
+    }
+
+    public List<Article> createArticles(List<ArticleForm> dtos) {
+        // 1. dto 묶음(리스트)을 엔티티 묶음으로 변환하기
+        List<Article> articlelist = dtos.stream()
+                .map(dto -> dto.toEntity())
+                .collect(Collectors.toList());
+
+        // 2. 엔티티 묶음(리스트)을 DB에 저장하기
+        articlelist.stream()
+                .forEach(article -> articleRepository.save(article));
+
+        // 3. 강제로 에러를 발생시키기
+        articleRepository.findById(-1L)
+                .orElseThrow(() -> new IllegalArgumentException("결제 실패!"));
+
+        // 4. 결과 값 반환하기
+        return articlelist;
     }
 }
